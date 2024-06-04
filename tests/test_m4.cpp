@@ -66,7 +66,6 @@ void test_mul_zero()
 
 void test_mul_known()
 {
-  const float epsilon{ 0.001f };
   const m4 a = {
     1.0f,   2.0f,  3.0f,  4.0f,
     5.0f,   6.0f,  7.0f,  8.0f,
@@ -144,6 +143,6 @@ int main()
 {
   std::ios::sync_with_stdio(false);
   test_mul();
-  std::clog << "Tests passed\n";
+  std::clog << __FILE__ << "...ok\n";
   return EXIT_SUCCESS;
 }
