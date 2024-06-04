@@ -419,10 +419,10 @@ int main()
     lastMouseX = win_x;
     lastMouseY = win_y;
     if(shouldWarp) {
-      // you want to avoid processing the incoming mouse events in this frame bc otherwise you will see a big jump
       XFlush(display);          // apply the warp immediately
-      xMouseOffset = 0;
-      lastMouseX = window_width / 2.0f;
+      xMouseOffset = 0;         // to avoid the effect of jumping to the center of the screen, say that there isn't any diff
+      assert(lastMouseX == window_width / 2.0f);
+      lastMouseX = window_width / 2.0f; // yes, go back to the center of the screen, like you said in XWarpPointer
     }
     xMouseOffset *= mouseSensitivity;
     yMouseOffset *= mouseSensitivity;
