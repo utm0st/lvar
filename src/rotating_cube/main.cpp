@@ -182,6 +182,29 @@ Shader loadBackgroundShader(const char* vertpath,
   return Shader(id, VAO, VBO);
 }
 
+// in X, hiding a pointer means creating a transparent one
+static void hidePointer(Display* d, Window& w)
+{
+  // GC -> graphics context
+  // create transparent pixelmap of 1x1
+  Pixmap pointerPixmap{ XCreatePixmap(d, w, 1, 1, 1) };
+  XGCValues values;
+  GC gc{ XCreateGC(d, pointerPixmap, 0, &values) };
+  // set the pointer to 0 (transparent)
+  XSetForeground(d, gc, 0);
+  XDrawPoint(d, pointerPixmap, gc, 0, 0);
+  XFreeGC(d, gc);
+  XColor colour;
+  colour.flags = DoRed | DoGreen | DoBlue;
+  colour.red = colour.green = colour.blue = 0;
+  Cursor transparentPointer{ XCreatePixmapCursor(d, pointerPixmap, pointerPixmap, &colour, &colour, 0, 0) };
+  // apply it to the window
+  XDefineCursor(d, w, transparentPointer);
+  // cleanup
+  XFreePixmap(d, pointerPixmap);
+  XFreeCursor(d, transparentPointer);
+}
+
 int main()
 {
   std::ios::sync_with_stdio(false);
@@ -293,6 +316,7 @@ int main()
       std::cerr << "Failed to grab pointer: Unknown error\n";
     }
   }
+  hidePointer(display, window);
   // run the game
   unsigned int texture1, texture2;
   // texture 1
@@ -338,7 +362,6 @@ int main()
   setUniformInt(s.id, "image2", 1);
   setUniformMat4(s.id, "projection", projection);
   // 3D
-  // constexpr float cameraSpeed{ 5.0f };
   v3 cubePositions[] = {
     v3( 0.0f,  0.0f,  3.0f),
     v3( 2.0f,  5.0f, -15.0f),
@@ -354,6 +377,7 @@ int main()
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   glEnable(GL_DEPTH_TEST);
+  // Camera stuff
   v3 const cameraUp{ 0.0f, 1.0f, 0.0f };
   v3 cameraFront{ 0.0f, 0.0f, -1.0f };
   v3 cameraPosition{ 0.0f, 0.0f, -3.0f };
@@ -363,13 +387,61 @@ int main()
   while ((err = glGetError()) != GL_NO_ERROR) {
     std::cerr << "OpenGL error: " << err << std::endl;
   }
+  // Euler angles
+  float yaw{ -90.0f };          // looking right or left?
+  float pitch{ 0.0f };          // looking up or down?
+  // Mouse stuff
+  float lastMouseX{ window_width / 2.0f };
+  float lastMouseY{ window_height / 2.0f };
+  constexpr float mouseSensitivity{ 0.2f };
   while(!quit) {
     auto currentFrame = time();
     auto delta = currentFrame - lastFrame;
     lastFrame = currentFrame;
     float const cameraSpeed{ 1.5f * delta };
     glViewport(0, 0, gwa.width, gwa.height);
-    // polling for x11 window events
+    // -------------------------------------------------------------------------------------------------------
+    // mouse
+    int root_x, root_y, win_x, win_y;
+    unsigned int mask_return;
+    Window root_return, child_return;
+    XQueryPointer(display, window, &root_return, &child_return, &root_x, &root_y, &win_x, &win_y, &mask_return);
+    // right after getting pointer's X and Y, you need to see if it's close to window's limits bc in that case
+    // you want to change the pointer to the center of the window again, which will simulate the effect of being
+    // able to do 360 turns in the game.
+    bool shouldWarp{ false };
+    if(win_x < 5 || win_x > window_width - 5) {
+      shouldWarp = true;
+      XWarpPointer(display, None, window, 0, 0, 0, 0, window_width / 2.0f, win_y);
+    }
+    float xMouseOffset{ win_x - lastMouseX };
+    float yMouseOffset{ lastMouseY - win_y };
+    lastMouseX = win_x;
+    lastMouseY = win_y;
+    if(shouldWarp) {
+      // you want to avoid processing the incoming mouse events in this frame bc otherwise you will see a big jump
+      XFlush(display);          // apply the warp immediately
+      xMouseOffset = 0;
+      lastMouseX = window_width / 2.0f;
+    }
+    xMouseOffset *= mouseSensitivity;
+    yMouseOffset *= mouseSensitivity;
+    yaw += xMouseOffset;
+    pitch += yMouseOffset;
+    // clamp, need a function
+    if(pitch > 89.0f) {
+      pitch =  89.0f;
+    } else if(pitch < -89.0f) {
+      pitch = -89.0f;
+    }
+    // camera direction changes based on mouse input
+    v3 const cameraDirection{
+      std::cos(radians(yaw)) * std::cos(radians(pitch)),
+      std::sin(radians(pitch)),
+      std::sin(radians(yaw)) * std::cos(radians(pitch))
+    };
+    cameraFront = normalise(cameraDirection);
+    // polling for x11 window events, keyboard
     while(XPending(display)) {
       XNextEvent(display, &xev);
       if(xev.type == KeyPress || xev.type == KeyRelease) {
@@ -400,16 +472,12 @@ int main()
         }
       }
     }
-    int root_x, root_y, win_x, win_y;
-    unsigned int mask_return;
-    Window root_return, child_return;
-    XQueryPointer(display, window, &root_return, &child_return, &root_x, &root_y, &win_x, &win_y, &mask_return);
     // -------------------------------------------------------------------------------------------------------
     // start render code
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     useShaderProgram(s.id);
-    m4 view{ lookAt(cameraPosition, add(cameraPosition, cameraFront), cameraUp) };
+    m4 const view{ lookAt(cameraPosition, add(cameraPosition, cameraFront), cameraUp) };
     setUniformMat4(s.id, "view", view);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texture2);
