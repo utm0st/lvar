@@ -451,16 +451,16 @@ int main()
           quit = true;
           break;
         case XK_a:
-          cameraPosition.x -= scale(normalise(cross(cameraFront, cameraUp)), cameraSpeed).x;
+          cameraPosition = sub(cameraPosition, scale(normalise(cross(cameraFront, cameraUp)), cameraSpeed));
           break;
         case XK_d:
-          cameraPosition.x += scale(normalise(cross(cameraFront, cameraUp)), cameraSpeed).x;
+          cameraPosition = add(cameraPosition, scale(normalise(cross(cameraFront, cameraUp)), cameraSpeed));
           break;
         case XK_w:
-          cameraPosition.z += scale(cameraFront, cameraSpeed).z;
+          cameraPosition = add(cameraPosition, scale(cameraFront, cameraSpeed));
           break;
         case XK_s:
-          cameraPosition.z -= scale(cameraFront, cameraSpeed).z;
+          cameraPosition = sub(cameraPosition, scale(cameraFront, cameraSpeed));
           break;
         default:
           break;
