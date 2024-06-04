@@ -15,9 +15,6 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-#include "glm/glm.hpp"
-#include "glm/gtc/matrix_transform.hpp"
-
 using namespace lvar;
 
 constexpr float window_width{ 1920.f };
@@ -333,7 +330,6 @@ int main()
     glGenerateMipmap(GL_TEXTURE_2D);
   }
   m4 const projection{ perspective(45.0f, 1920.0f / 1080.0f, 0.1f, 100.f) };
-  glm::mat4 const projectionGLM{ glm::perspective(45.0f, 1920.0f / 1080.0f, 0.1f, 100.f) };
   stbi_image_free(data);
   auto s = loadBackgroundShader("./res/basic.vert",
                                 "./res/basic.frag");
@@ -341,7 +337,6 @@ int main()
   setUniformInt(s.id, "image1", 0);
   setUniformInt(s.id, "image2", 1);
   setUniformMat4(s.id, "projection", projection);
-  glUniformMatrix4fv(glGetUniformLocation(s.id, "wtf"), 1, false, &projectionGLM[0][0]);
   // 3D
   // constexpr float cameraSpeed{ 5.0f };
   v3 cubePositions[] = {
