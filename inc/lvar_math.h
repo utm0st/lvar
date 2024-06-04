@@ -4,14 +4,18 @@
 #include <cmath>
 #include <initializer_list>
 #include <algorithm>
+// @TODO: this shit is diff in windows, probably #ifdef? separate file lvar_intrinsics.h?
 #include <immintrin.h>          // SSE 4.2
-#include <iostream>
 
 namespace lvar {
 
   constexpr float PI{ 3.1415926535897f };
   constexpr float epsilon{ 0.0001f };
-  constexpr float deg2rad{ PI / 180.0f };
+
+  inline float radians(float const degrees)
+  {
+    return degrees * (PI / 180.0f);
+  }
 
   // prepare all these classes for simd
   // this means classes should ideally align with 16 byte boundaries
@@ -64,27 +68,23 @@ namespace lvar {
       std::copy(a.begin(), a.end(), elements);
     }
     // allow setting values thru this function bc it's useful
-    inline float& get(const int col, const int row) noexcept
+    inline float& get(int const col, int const row) noexcept
     {
       return elements[col * 4 + row];
     }
-    inline const float& get(const int col, const int row) const noexcept
+    inline const float& get(int const col, int const row) const noexcept
     {
       return elements[col * 4 + row];
     }
   };
 
-  // -----
-  // -- vector operations
-  // -----
-
-  inline float dot(const v4& a, const v4& b)
+  inline float dot(v4 const& a, v4 const& b)
   {
     // @TODO: simd
     return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
   }
 
-  inline float dot(const v3& a, const v3& b)
+  inline float dot(v3 const& a, v3 const& b)
   {
     // @TODO: simd
     return a.x * b.x + a.y * b.y + a.z * b.z;
@@ -102,20 +102,20 @@ namespace lvar {
 
   // @NOTE: matrix multiplication is done from right to left, so be careful when
   // you call this function
-  inline m4 mul(const m4& a, const m4& b)
+  inline m4 mul(m4 const& a, m4 const& b)
   {
     m4 res;
     for(int i{ 0 }; i < 4; ++i) {
-      const __m128 row = _mm_set_ps(a.get(i, 3), a.get(i, 2), a.get(i, 1), a.get(i, 0));
+      __m128 const row = _mm_set_ps(a.get(i, 3), a.get(i, 2), a.get(i, 1), a.get(i, 0));
       for(int j{ 0 }; j < 4; ++j) {
         // these two functions, _mm_set_ps, load floats into in reverse order of the args
         // that you provide! how about that!
-        const __m128 col = _mm_set_ps(b.get(3, j), b.get(2, j), b.get(1, j), b.get(0, j));
+        __m128 const col = _mm_set_ps(b.get(3, j), b.get(2, j), b.get(1, j), b.get(0, j));
         // 0xF1 shit is telling the CPU to:
         // 0x1 lower four bits: only the lowest element (value within the register) of the result
         // register is used to store the dot product
         // 0xF higher four bits: all elements from col and row should be multiplied together
-        const __m128 dot = _mm_dp_ps(row, col, 0xf1);
+        __m128 const dot = _mm_dp_ps(row, col, 0xf1);
         res.get(i, j) = _mm_cvtss_f32(dot);
       }
     }
@@ -131,7 +131,7 @@ namespace lvar {
     assert(far > near);
     // basically took it out of the internet, the math is over my head at the moment, see:
     // http://www.songho.ca/opengl/gl_projectionmatrix.html#fov
-    float const half_fov_rad{ (fov / 2.0f) * deg2rad };
+    float const half_fov_rad{ radians(fov / 2.0f) };
     float const tan_half_fov{ std::tanf(half_fov_rad) };
     float const top{ near * tan_half_fov };
     float const right{ top * ratio };
@@ -144,7 +144,7 @@ namespace lvar {
     return result;
   }
 
-  inline void translate(m4& m, const v3& pos)
+  inline void translate(m4& m, v3 const& pos)
   {
     // @TODO: simd
     m.get(3, 0) += pos.x;
@@ -152,7 +152,7 @@ namespace lvar {
     m.get(3, 2) += pos.z;
   }
 
-  inline void scale(m4& m, const v3& v)
+  inline void scale(m4& m, v3 const& v)
   {
     // @TODO: simd
     m.get(0, 0) *= v.x;
@@ -171,14 +171,14 @@ namespace lvar {
   }
 
   // @TODO: comment this for each line because it's hard to read
-  inline v3 cross(const v3& v1, const v3& v2)
+  inline v3 cross(v3 const& v1, v3 const& v2)
   {
-    const __m128 v1vec{ _mm_set_ps(0.0f, v1.z, v1.y, v1.x) };
-    const __m128 v2vec{ _mm_set_ps(0.0f, v2.z, v2.y, v2.x) };
-    const __m128 v1_yzx{ _mm_shuffle_ps(v1vec, v1vec, _MM_SHUFFLE(3, 0, 2, 1)) };
-    const __m128 v2_yzx{ _mm_shuffle_ps(v2vec, v2vec, _MM_SHUFFLE(3, 0, 2, 1)) };
-    const __m128 a{ _mm_mul_ps(v1vec, v2_yzx) };
-    const __m128 b{ _mm_mul_ps(v1_yzx, v2vec) };
+    __m128 const v1vec{ _mm_set_ps(0.0f, v1.z, v1.y, v1.x) };
+    __m128 const v2vec{ _mm_set_ps(0.0f, v2.z, v2.y, v2.x) };
+    __m128 const v1_yzx{ _mm_shuffle_ps(v1vec, v1vec, _MM_SHUFFLE(3, 0, 2, 1)) };
+    __m128 const v2_yzx{ _mm_shuffle_ps(v2vec, v2vec, _MM_SHUFFLE(3, 0, 2, 1)) };
+    __m128 const a{ _mm_mul_ps(v1vec, v2_yzx) };
+    __m128 const b{ _mm_mul_ps(v1_yzx, v2vec) };
     __m128 resultSimd{ _mm_sub_ps(a, b) };
     resultSimd = _mm_shuffle_ps(resultSimd, resultSimd, _MM_SHUFFLE(3, 0, 2, 1));
     v3 res;
@@ -208,21 +208,21 @@ namespace lvar {
     };
   }
 
-  inline v3 normalise(const v3& v)
+  inline v3 normalise(v3 const& v)
   {
     // div by zero check so program doesn't blow up
     if(v.x == 0 && v.y == 0 && v.z == 0) {
       return { 0.0f, 0.0f, 0.0f };
     }
     // simd black magic
-    const __m128 vsimd{ _mm_set_ps(0.0f, v.z, v.y, v.x) }; // yes, reversed, you know about this already
-    const __m128 mul{ _mm_mul_ps(vsimd, vsimd) }; // square each element
+    __m128 const vsimd{ _mm_set_ps(0.0f, v.z, v.y, v.x) }; // yes, reversed, you know about this already
+    __m128 const mul{ _mm_mul_ps(vsimd, vsimd) }; // square each element
     // sum components
-    const __m128 sum{ _mm_add_ps(_mm_shuffle_ps(mul, mul, _MM_SHUFFLE(0, 0, 0, 0)),
+    __m128 const sum{ _mm_add_ps(_mm_shuffle_ps(mul, mul, _MM_SHUFFLE(0, 0, 0, 0)),
                                  _mm_add_ps(_mm_shuffle_ps(mul, mul, _MM_SHUFFLE(1, 1, 1, 1)),
                                             _mm_shuffle_ps(mul, mul, _MM_SHUFFLE(2, 2, 2, 2)))) };
-    const __m128 sqrt{ _mm_sqrt_ps(sum) }; // sqrt of sum
-    const __m128 normalised{ _mm_div_ps(vsimd, sqrt) }; // finally, divide by magnitude and get normalised vec
+    __m128 const sqrt{ _mm_sqrt_ps(sum) }; // sqrt of sum
+    __m128 const normalised{ _mm_div_ps(vsimd, sqrt) }; // finally, divide by magnitude and get normalised vec
     v3 res;
     // x is already stored in the lowest single element of the register, so no need to do more black magic
     _mm_store_ss(&res.x, normalised);
@@ -253,32 +253,32 @@ namespace lvar {
     return mul(translation, rotation);
   }
 
+  // @TODO: support multiple rotations
+  // @TODO: use quaternions instead to avoid gimbal lock problem
   void rotate(m4& m, float const degrees, v3i const& axis)
   {
-    const auto radians = PI / 180.0f;
+    auto const rad = radians(degrees);
     m4 r;
     if(axis.x == 1) {
       r = m4{
-        1.0f, 0.0f,               0.0f,              0.0f,
-        0.0f, std::cos(radians), -std::sin(radians), 0.0f,
-        0.0f, std::sin(radians),  std::cos(radians), 0.0f,
-        0.0f, 0.0f,               0.0f,              1.0f
+        1.0f, 0.0f,           0.0f,          0.0f,
+        0.0f, std::cos(rad), -std::sin(rad), 0.0f,
+        0.0f, std::sin(rad),  std::cos(rad), 0.0f,
+        0.0f, 0.0f,           0.0f,          1.0f,
       };
-    }
-    if(axis.y == 1) {
+    } else if(axis.y == 1) {
       r = m4{
-        std::cos(radians),  0.0f, std::sin(radians), 0.0f,
-        0.0f,               1.0f, 0.0f,              0.0f,
-        -std::sin(radians), 0.0f, std::cos(radians), 0.0f,
-        0.0f,               0.0f, 0.0f,              1.0f
+        std::cos(rad),  0.0f, std::sin(rad), 0.0f,
+        0.0f,           1.0f, 0.0f,          0.0f,
+        -std::sin(rad), 0.0f, std::cos(rad), 0.0f,
+        0.0f,           0.0f, 0.0f,          1.0f,
       };
-    }
-    if(axis.z == 1) {
+    } else if(axis.z == 1) {
       r = m4{
-        std::cos(radians), -std::sin(radians), 0.0f, 0.0f,
-        std::sin(radians),  std::cos(radians), 0.0f, 0.0f,
-        0.0f,               0.0f,              1.0f, 0.0f,
-        0.0f,               0.0f,              0.0f, 1.0f
+        std::cos(rad), -std::sin(rad), 0.0f, 0.0f,
+        std::sin(rad),  std::cos(rad), 0.0f, 0.0f,
+        0.0f,           0.0f,          1.0f, 0.0f,
+        0.0f,           0.0f,          0.0f, 1.0f,
       };
     }
     m = mul(m, r);
