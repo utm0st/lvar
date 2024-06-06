@@ -17,26 +17,82 @@
 
 using namespace lvar;
 
-constexpr float window_width{ 1920.f };
-constexpr float window_height{ 1080.f };
+constexpr float WORLD_UNIT_TO_PIXEL{ 10.0f };
+
+inline constexpr float worldToPixels(float const worldunits)
+{
+  return worldunits * WORLD_UNIT_TO_PIXEL;
+}
+
+inline constexpr float pixelsToWorld(float const pixels)
+{
+  return pixels / WORLD_UNIT_TO_PIXEL;
+}
+
+float constexpr window_width { 1920.f };
+float constexpr window_height{ 1080.f };
+
+float constexpr level_width_game_units { 10.0f };
+float constexpr level_height_game_units{ 10.0f };
+float constexpr level_depth_game_units { 10.0f };
+
+class grid final {
+public:
+  grid() noexcept
+  {
+    // this shouldn't be "random", choosing a right value depends on the avg size of entities
+    cell_width  = 5.0f;         // game units
+    cell_height = 5.0f;         // "
+    cell_depth  = 5.0f;         // "
+    rows   = std::ceil(level_width_game_units  / cell_height);
+    cols   = std::ceil(level_height_game_units / cell_width);
+    layers = std::ceil(level_depth_game_units  / cell_depth);
+  }
+
+  inline auto id(v3 const& pos) const noexcept
+  {
+    auto const xIndex = std::floor(pos.x / cell_width);
+    auto const yIndex = std::floor(pos.y / cell_height);
+    auto const zIndex = std::floor(pos.z / cell_depth);
+    // hash that you've seen in the internet, just copy&paste p much
+    return xIndex + yIndex * cols + zIndex * cols * rows;
+  }
+
+  void update(v3 const& pos) const noexcept
+  {
+    const auto i = id(pos);
+    // std::clog << "current pos -> (" << pos.x << ", " << pos.y << ", " << pos.z << ")" << std::endl;
+    // std::clog << "computed id -> " << id(pos) << std::endl;
+  }
+private:
+  int rows;
+  int cols;
+  int layers;
+  float cell_width;
+  float cell_height;
+  float cell_depth;
+};
 
 inline auto useShaderProgram(const unsigned int id) noexcept
 {
   glUseProgram(id);
 }
-// NOTE: you can cache uniform locations to avoid a context switch
+
 inline auto setUniformFloat(const unsigned int id, const char* uniname, const float v)
 {
   glUniform1f(glGetUniformLocation(id, uniname), v);
 }
+
 inline auto setUniformMat4(const unsigned int id, const char* uniname, const m4& m)
 {
   glUniformMatrix4fv(glGetUniformLocation(id, uniname), 1, false, &m.get(0, 0));
 }
+
 inline auto setUniformInt(const unsigned int id, const char* uniname, const int value)
 {
   glUniform1i(glGetUniformLocation(id, uniname), value);
 }
+
 inline auto setUniformVec4(const unsigned int id, const char* uniname, const v4& value)
 {
   glUniform4f(glGetUniformLocation(id, uniname), value.x, value.y, value.z, value.w);
@@ -114,18 +170,18 @@ Shader loadBackgroundShader(const char* vertpath,
     std::cerr << __FUNCTION__ << " Error creating shader\n";
     exit(EXIT_FAILURE);
   }
-  constexpr float vertices[] {
+  float constexpr vertices[] {
     -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-    0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-    0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-    0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+     0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
     -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
     -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
 
     -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-    0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-    0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-    0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
     -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
     -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
 
@@ -136,30 +192,27 @@ Shader loadBackgroundShader(const char* vertpath,
     -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
     -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
 
-    0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-    0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-    0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-    0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-    0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-    0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+     0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+     0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+     0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
 
     -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-    0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
-    0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-    0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
     -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
     -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
 
     -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-    0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-    0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-    0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
     -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f  };
-  // unsigned int indices[] = {
-  //   0, 1, 3, // first triangle
-  //   1, 2, 3  // second triangle
-  // };
+    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
+  };
   unsigned int VBO, VAO, EBO;
   glGenBuffers(1, &VBO);
   glGenVertexArrays(1, &VAO);
@@ -167,13 +220,45 @@ Shader loadBackgroundShader(const char* vertpath,
   glBindVertexArray(VAO);
   glBindBuffer(GL_ARRAY_BUFFER, VBO);
   glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-  // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-  // glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
   // position attribute
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
   glEnableVertexAttribArray(0);
   // texture coord attribute
   glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+  glEnableVertexAttribArray(1);
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
+  glBindVertexArray(0);
+  useShaderProgram(id);
+  setUniformInt(id, "image", 0);
+  return Shader(id, VAO, VBO);
+}
+
+Shader loadWallsShader(char const* vertpath,
+                       char const* fragpath)
+{
+  auto const id = loadCompileShaders(vertpath, fragpath);
+  if(!id) {
+    std::cerr << __FUNCTION__ << " Error creating shader\n";
+    exit(EXIT_FAILURE);
+  }
+  float constexpr vertices[] = {
+    -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, // bottom-left
+    -0.5f,  0.5f, 0.0f, 0.0f, 1.0f, // top-left
+     0.5f, -0.5f, 0.0f, 1.0f, 0.0f, // bottom-right
+
+     0.5f, -0.5f, 0.0f, 1.0f, 0.0f, // bottom-right
+     0.5f,  0.5f, 0.0f, 1.0f, 1.0f, // top-right
+    -0.5f,  0.5f, 0.0f, 0.0f, 1.0f, // top-left
+  };
+  unsigned int VAO, VBO;
+  glGenBuffers(1, &VBO);
+  glGenVertexArrays(1, &VAO);
+  glBindVertexArray(VAO);
+  glBindBuffer(GL_ARRAY_BUFFER, VAO);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+  glVertexAttribPointer(0, 3, GL_FLOAT, false, 5 * sizeof(float), (void*)0);
+  glEnableVertexAttribArray(0);
+  glVertexAttribPointer(1, 2, GL_FLOAT, false, 5 * sizeof(float), (void*)(sizeof(float) * 3));
   glEnableVertexAttribArray(1);
   glBindBuffer(GL_ARRAY_BUFFER, 0);
   glBindVertexArray(0);
@@ -318,7 +403,7 @@ int main()
   }
   hidePointer(display, window);
   // run the game
-  unsigned int texture1, texture2;
+  unsigned int texture1, texture2, wallTexture;
   // texture 1
   // ---------
   glGenTextures(1, &texture1);
@@ -353,6 +438,21 @@ int main()
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
     glGenerateMipmap(GL_TEXTURE_2D);
   }
+  // wall texture
+  glGenTextures(1, &wallTexture);
+  glBindTexture(GL_TEXTURE_2D, wallTexture);
+  // set the texture wrapping parameters
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  // set texture filtering parameters
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  // load image, create texture and generate mipmaps
+  data = stbi_load("./res/blocks1.jpg", &width, &height, &nrChannels, 0);
+  if (data){
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+    glGenerateMipmap(GL_TEXTURE_2D);
+  }
   m4 const projection{ perspective(45.0f, 1920.0f / 1080.0f, 0.1f, 100.f) };
   stbi_image_free(data);
   auto s = loadBackgroundShader("./res/basic.vert",
@@ -361,18 +461,28 @@ int main()
   setUniformInt(s.id, "image1", 0);
   setUniformInt(s.id, "image2", 1);
   setUniformMat4(s.id, "projection", projection);
+  // load wall
+  auto s2 = loadWallsShader("./res/wall.vert", "./res/wall.frag");
+  useShaderProgram(s2.id);
+  setUniformMat4(s2.id, "projection", projection);
   // 3D
+  grid levelGrid;
   v3 cubePositions[] = {
-    v3( 0.0f,  0.0f,  3.0f),
-    v3( 2.0f,  5.0f, -15.0f),
-    v3(-1.5f, -2.2f, -2.5f),
-    v3(-3.8f, -2.0f, -12.3f),
-    v3( 2.4f, -0.4f, -3.5f),
-    v3(-1.7f,  3.0f, -7.5f),
-    v3( 1.3f, -2.0f, -2.5f),
-    v3( 1.5f,  2.0f, -2.5f),
-    v3( 1.5f,  0.2f, -1.5f),
-    v3(-1.3f,  1.0f, -1.5f)
+    v3( 5.0f,  2.0f,  5.0f),
+    v3( 8.0f,  8.0f,  8.0f),
+  };
+  // wall data, you want to form a square
+  v3 const wallScales[] = {
+    v3(level_width_game_units, level_height_game_units, 1.0f), // front wall
+    v3(level_width_game_units, level_height_game_units, 1.0f), // back wall
+    v3(level_width_game_units, level_height_game_units, 1.0f), // left wall
+    v3(level_width_game_units, level_height_game_units, 1.0f), // right wall
+  };
+  v3 const wallPositions[] = {
+    v3( level_width_game_units / 2.0f, level_height_game_units / 2.0f, level_depth_game_units), // front wall
+    v3( level_width_game_units / 2.0f, level_height_game_units / 2.0f, 0.0f), // back wall
+    v3( 0.0f, level_height_game_units / 2.0f, level_width_game_units / 2.0f), // left wall
+    v3( level_width_game_units, level_height_game_units / 2.0f, level_width_game_units / 2.0f), // right wall
   };
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -380,7 +490,7 @@ int main()
   // Camera stuff
   v3 const cameraUp{ 0.0f, 1.0f, 0.0f };
   v3 cameraFront{ 0.0f, 0.0f, -1.0f };
-  v3 cameraPosition{ 0.0f, 0.0f, -3.0f };
+  v3 cameraPosition{ 5.0f, 5.0f, 5.0f };
   auto lastFrame = 0.0f;
   auto quit = false;
   GLenum err;
@@ -440,6 +550,7 @@ int main()
       std::sin(radians(yaw)) * std::cos(radians(pitch))
     };
     cameraFront = normalise(cameraDirection);
+    auto prevCameraPosition = cameraPosition;
     // polling for x11 window events, keyboard
     while(XPending(display)) {
       XNextEvent(display, &xev);
@@ -471,9 +582,13 @@ int main()
         }
       }
     }
+    if(cameraPosition.x > level_width_game_units || cameraPosition.y > level_height_game_units || cameraPosition.z > level_depth_game_units || cameraPosition.x < 0.0f || cameraPosition.y < 0.0f || cameraPosition.z < 0.0f) {
+      cameraPosition = prevCameraPosition;
+    }
+    levelGrid.update(cameraPosition);
     // -------------------------------------------------------------------------------------------------------
     // start render code
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClearColor(0.3f, 0.2f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     useShaderProgram(s.id);
     m4 const view{ lookAt(cameraPosition, add(cameraPosition, cameraFront), cameraUp) };
@@ -484,13 +599,29 @@ int main()
     glBindTexture(GL_TEXTURE_2D, texture1);
     glBindVertexArray(s.VAO);
     // model matrix contains translations, rotations and scales
-    for(int i{ 0 }; i < 10; ++i) {
+    for(int i{ 0 }; i < 2; ++i) {
       m4 model = identity();
       const float rotation = 20.0f * i;
       rotate(model, rotation, v3i{0, 0, 1});
       translate(model, cubePositions[i]);
       setUniformMat4(s.id, "model", model);
       glDrawArrays(GL_TRIANGLES, 0, 36);
+    }
+    // wall
+    useShaderProgram(s2.id);
+    setUniformMat4(s2.id, "view", view);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, wallTexture);
+    glBindVertexArray(s2.VAO);
+    for(int i{ 0 }; i < 4; ++i) {
+      m4 model{ identity() };
+      scale(model, wallScales[i]);
+      if(i > 1) {
+        rotate(model, 90.0f, v3i{0, 1, 0});
+      }
+      translate(model, wallPositions[i]);
+      setUniformMat4(s2.id, "model", model);
+      glDrawArrays(GL_TRIANGLES, 0, 18);
     }
     // -------------------------------------------------------------------------------------------------------
     // end render code

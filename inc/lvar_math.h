@@ -9,10 +9,10 @@
 
 namespace lvar {
 
-  constexpr float PI{ 3.1415926535897f };
-  constexpr float epsilon{ 0.0001f };
+  float constexpr PI{ 3.1415926535897f };
+  float constexpr epsilon{ 0.001f };
 
-  inline float radians(float const degrees)
+  inline constexpr float radians(float const degrees)
   {
     return degrees * (PI / 180.0f);
   }
@@ -78,15 +78,15 @@ namespace lvar {
     }
   };
 
-  inline float dot(v4 const& a, v4 const& b)
+  inline constexpr float dot(v4 const& a, v4 const& b)
   {
-    // @TODO: simd
+    // @NOTE: gcc optimises the hell out of this, no need to use intrinsics
     return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
   }
 
-  inline float dot(v3 const& a, v3 const& b)
+  inline constexpr float dot(v3 const& a, v3 const& b)
   {
-    // @TODO: simd
+    // @NOTE: gcc optimises the hell out of this, no need to use intrinsics
     return a.x * b.x + a.y * b.y + a.z * b.z;
   }
 
@@ -146,7 +146,7 @@ namespace lvar {
 
   inline void translate(m4& m, v3 const& pos)
   {
-    // @TODO: simd
+    // @NOTE: no need for intrinsics, gcc optimises pretty f well
     m.get(3, 0) += pos.x;
     m.get(3, 1) += pos.y;
     m.get(3, 2) += pos.z;
@@ -154,7 +154,7 @@ namespace lvar {
 
   inline void scale(m4& m, v3 const& v)
   {
-    // @TODO: simd
+    // @NOTE: no need for intrinsics, gcc optimises pretty f well
     m.get(0, 0) *= v.x;
     m.get(1, 1) *= v.y;
     m.get(2, 2) *= v.z;
@@ -162,7 +162,7 @@ namespace lvar {
 
   inline v3 scale(v3 const& v, float const s)
   {
-    // @TODO: simd
+    // @NOTE: no need for intrinsics, gcc optimises pretty f well
     return {
       v.x * s,
       v.y * s,
@@ -190,7 +190,7 @@ namespace lvar {
 
   inline v3 sub(v3 const& a, v3 const& b)
   {
-    // @TODO: simd
+    // @NOTE: no need for intrinsics, gcc optimises pretty f well
     return {
       a.x - b.x,
       a.y - b.y,
@@ -200,7 +200,7 @@ namespace lvar {
 
   inline v3 add(v3 const& a, v3 const& b)
   {
-    // @TODO: simd
+    // @NOTE: no need for intrinsics, gcc optimises pretty f well
     return {
       a.x + b.x,
       a.y + b.y,
