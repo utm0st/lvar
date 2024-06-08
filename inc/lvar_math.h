@@ -239,9 +239,9 @@ namespace lvar {
     v3 const s{ normalise(cross(up, f)) };     // right
     v3 const u{ cross(f, s) };
     m4 const translation{
-      1.0f, 0.0f, 0.0f, 0.0f,
-      0.0f, 1.0f, 0.0f, 0.0f,
-      0.0f, 0.0f, 1.0f, 0.0f,
+       1.0f,   0.0f,   0.0f,  0.0f,
+       0.0f,   1.0f,   0.0f,  0.0f,
+       0.0f,   0.0f,   1.0f,  0.0f,
       -pos.x, -pos.y, -pos.z, 1.0f,
     };
     m4 const rotation{

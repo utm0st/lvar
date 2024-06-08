@@ -1,6 +1,7 @@
 #include "lvar_opengl_gnulinux.h"
 #include "lvar_math.h"
 #include "lvar_timer.h"
+#include "lvar_math_debug.h"
 
 #include <iostream>
 #include <cstdlib>
@@ -171,47 +172,48 @@ Shader loadBackgroundShader(const char* vertpath,
     exit(EXIT_FAILURE);
   }
   float constexpr vertices[] {
-    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-     0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-
-    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-    -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-
-    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-    -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-     0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-     0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-     0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
-    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-     0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
-     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-
-    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-    -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
+    // Back face
+    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, // Bottom-left
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f, // top-right
+     0.5f, -0.5f, -0.5f,  1.0f, 0.0f, // bottom-right
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f, // top-right
+    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, // bottom-left
+    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, // top-left
+    // Front face
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, // bottom-left
+     0.5f, -0.5f,  0.5f,  1.0f, 0.0f, // bottom-right
+     0.5f,  0.5f,  0.5f,  1.0f, 1.0f, // top-right
+     0.5f,  0.5f,  0.5f,  1.0f, 1.0f, // top-right
+    -0.5f,  0.5f,  0.5f,  0.0f, 1.0f, // top-left
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, // bottom-left
+    // Left face
+    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f, // top-right
+    -0.5f,  0.5f, -0.5f,  1.0f, 1.0f, // top-left
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f, // bottom-left
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f, // bottom-left
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, // bottom-right
+    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f, // top-right
+    // Right face
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f, // top-left
+     0.5f, -0.5f, -0.5f,  0.0f, 1.0f, // bottom-right
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f, // top-right
+     0.5f, -0.5f, -0.5f,  0.0f, 1.0f, // bottom-right
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f, // top-left
+     0.5f, -0.5f,  0.5f,  0.0f, 0.0f, // bottom-left
+    // Bottom face
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f, // top-right
+     0.5f, -0.5f, -0.5f,  1.0f, 1.0f, // top-left
+     0.5f, -0.5f,  0.5f,  1.0f, 0.0f, // bottom-left
+     0.5f, -0.5f,  0.5f,  1.0f, 0.0f, // bottom-left
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, // bottom-right
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f, // top-right
+    // Top face
+    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, // top-left
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f, // bottom-right
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f, // top-right
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f, // bottom-right
+    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, // top-left
+    -0.5f,  0.5f,  0.5f,  0.0f, 0.0f  // bottom-left
   };
   unsigned int VBO, VAO, EBO;
   glGenBuffers(1, &VBO);
@@ -243,18 +245,18 @@ Shader loadWallsShader(char const* vertpath,
   }
   float constexpr vertices[] = {
     -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, // bottom-left
-    -0.5f,  0.5f, 0.0f, 0.0f, 1.0f, // top-left
      0.5f, -0.5f, 0.0f, 1.0f, 0.0f, // bottom-right
+    -0.5f,  0.5f, 0.0f, 0.0f, 1.0f, // top-left
 
-     0.5f, -0.5f, 0.0f, 1.0f, 0.0f, // bottom-right
-     0.5f,  0.5f, 0.0f, 1.0f, 1.0f, // top-right
     -0.5f,  0.5f, 0.0f, 0.0f, 1.0f, // top-left
+     0.5f,  0.5f, 0.0f, 1.0f, 1.0f, // top-right
+     0.5f, -0.5f, 0.0f, 1.0f, 0.0f, // bottom-right
   };
   unsigned int VAO, VBO;
   glGenBuffers(1, &VBO);
   glGenVertexArrays(1, &VAO);
   glBindVertexArray(VAO);
-  glBindBuffer(GL_ARRAY_BUFFER, VAO);
+  glBindBuffer(GL_ARRAY_BUFFER, VBO);
   glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
   glVertexAttribPointer(0, 3, GL_FLOAT, false, 5 * sizeof(float), (void*)0);
   glEnableVertexAttribArray(0);
@@ -263,7 +265,7 @@ Shader loadWallsShader(char const* vertpath,
   glBindBuffer(GL_ARRAY_BUFFER, 0);
   glBindVertexArray(0);
   useShaderProgram(id);
-  setUniformInt(id, "image", 0);
+  setUniformInt(id, "image1", 0);
   return Shader(id, VAO, VBO);
 }
 
@@ -403,7 +405,7 @@ int main()
   }
   hidePointer(display, window);
   // run the game
-  unsigned int texture1, texture2, wallTexture;
+  unsigned int texture1, texture2, wallTexture, groundTexture;
   // texture 1
   // ---------
   glGenTextures(1, &texture1);
@@ -438,6 +440,7 @@ int main()
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
     glGenerateMipmap(GL_TEXTURE_2D);
   }
+  stbi_image_free(data);
   // wall texture
   glGenTextures(1, &wallTexture);
   glBindTexture(GL_TEXTURE_2D, wallTexture);
@@ -453,8 +456,24 @@ int main()
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
     glGenerateMipmap(GL_TEXTURE_2D);
   }
-  m4 const projection{ perspective(45.0f, 1920.0f / 1080.0f, 0.1f, 100.f) };
   stbi_image_free(data);
+  // ground texture
+  glGenTextures(1, &groundTexture);
+  glBindTexture(GL_TEXTURE_2D, groundTexture);
+  // set the texture wrapping parameters
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  // set texture filtering parameters
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  // load image, create texture and generate mipmaps
+  data = stbi_load("./res/Cobblestone.png", &width, &height, &nrChannels, 0);
+  if (data){
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+    glGenerateMipmap(GL_TEXTURE_2D);
+  }
+  stbi_image_free(data);
+  m4 const projection{ perspective(45.0f, 1920.0f / 1080.0f, 0.1f, 100.f) };
   auto s = loadBackgroundShader("./res/basic.vert",
                                 "./res/basic.frag");
   useShaderProgram(s.id);
@@ -484,9 +503,24 @@ int main()
     v3( 0.0f, level_height_game_units / 2.0f, level_width_game_units / 2.0f), // left wall
     v3( level_width_game_units, level_height_game_units / 2.0f, level_width_game_units / 2.0f), // right wall
   };
+  v3 const groundScale {
+    level_width_game_units, level_height_game_units, 1.0f,
+  };
+  v3 const groundPosition {
+    level_width_game_units / 2.0f, 0, level_depth_game_units / 2.0f,
+  };
+  // ground
+  m4 groundModel{ identity() };
+  scale(groundModel, groundScale);
+  rotate(groundModel, 90.0f, v3i{ 1, 0, 0 });
+  translate(groundModel, groundPosition);
+  // OpenGL stuff
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   glEnable(GL_DEPTH_TEST);
+  glEnable(GL_CULL_FACE);
+  // debug
+  bool wireframe{ false };
   // Camera stuff
   v3 const cameraUp{ 0.0f, 1.0f, 0.0f };
   v3 cameraFront{ 0.0f, 0.0f, -1.0f };
@@ -573,6 +607,15 @@ int main()
         case XK_s:
           cameraPosition = sub(cameraPosition, scale(cameraFront, cameraSpeed));
           break;
+        case XK_F3:
+          if(!wireframe) {
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+            wireframe = true;
+          } else {
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+            wireframe = false;
+          }
+          break;
         default:
           break;
         }
@@ -582,16 +625,18 @@ int main()
         }
       }
     }
+    // @NOTE: modify this is you clip thru game level's walls
     if(cameraPosition.x > level_width_game_units || cameraPosition.y > level_height_game_units || cameraPosition.z > level_depth_game_units || cameraPosition.x < 0.0f || cameraPosition.y < 0.0f || cameraPosition.z < 0.0f) {
       cameraPosition = prevCameraPosition;
     }
     levelGrid.update(cameraPosition);
+    // view matrix (camera)
+    m4 const view{ lookAt(cameraPosition, add(cameraPosition, cameraFront), cameraUp) };
     // -------------------------------------------------------------------------------------------------------
     // start render code
     glClearColor(0.3f, 0.2f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     useShaderProgram(s.id);
-    m4 const view{ lookAt(cameraPosition, add(cameraPosition, cameraFront), cameraUp) };
     setUniformMat4(s.id, "view", view);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texture2);
@@ -623,6 +668,10 @@ int main()
       setUniformMat4(s2.id, "model", model);
       glDrawArrays(GL_TRIANGLES, 0, 18);
     }
+    // ground
+    glBindTexture(GL_TEXTURE_2D, groundTexture);
+    setUniformMat4(s2.id, "model", groundModel);
+    glDrawArrays(GL_TRIANGLES, 0, 18);
     // -------------------------------------------------------------------------------------------------------
     // end render code
     XGetWindowAttributes(display, window, &gwa);
