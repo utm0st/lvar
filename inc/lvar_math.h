@@ -12,6 +12,7 @@ namespace lvar {
   float constexpr PI{ 3.1415926535897f };
   float constexpr epsilon{ 0.001f };
 
+  [[nodiscard]]
   inline constexpr float radians(float const degrees)
   {
     return degrees * (PI / 180.0f);
@@ -78,18 +79,21 @@ namespace lvar {
     }
   };
 
+  [[nodiscard]]
   inline constexpr float dot(v4 const& a, v4 const& b)
   {
     // @NOTE: gcc optimises the hell out of this, no need to use intrinsics
     return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
   }
 
+  [[nodiscard]]
   inline constexpr float dot(v3 const& a, v3 const& b)
   {
     // @NOTE: gcc optimises the hell out of this, no need to use intrinsics
     return a.x * b.x + a.y * b.y + a.z * b.z;
   }
 
+  [[nodiscard]]
   inline m4 identity()
   {
     return {
@@ -102,6 +106,7 @@ namespace lvar {
 
   // @NOTE: matrix multiplication is done from right to left, so be careful when
   // you call this function
+  [[nodiscard]]
   inline m4 mul(m4 const& a, m4 const& b)
   {
     m4 res;
@@ -124,6 +129,7 @@ namespace lvar {
 
   // this matrix is used to transform from view to clip space. Clip coordinates are between [-1.0, 1.0] range.
   // Everything outside this range will get clipped. FOV -> vertical fov
+  [[nodiscard]]
   m4 perspective(float const fov, float const ratio, float const near, float const far)
   {
     // no need to do simd here bc this function will be called only once or not too many times at least
@@ -160,6 +166,7 @@ namespace lvar {
     m.get(2, 2) *= v.z;
   }
 
+  [[nodiscard]]
   inline v3 scale(v3 const& v, float const s)
   {
     // @NOTE: no need for intrinsics, gcc optimises pretty f well
@@ -171,6 +178,7 @@ namespace lvar {
   }
 
   // @TODO: comment this for each line because it's hard to read
+  [[nodiscard]]
   inline v3 cross(v3 const& v1, v3 const& v2)
   {
     __m128 const v1vec{ _mm_set_ps(0.0f, v1.z, v1.y, v1.x) };
@@ -188,6 +196,7 @@ namespace lvar {
     return res;
   }
 
+  [[nodiscard]]
   inline v3 sub(v3 const& a, v3 const& b)
   {
     // @NOTE: no need for intrinsics, gcc optimises pretty f well
@@ -198,6 +207,7 @@ namespace lvar {
     };
   }
 
+  [[nodiscard]]
   inline v3 add(v3 const& a, v3 const& b)
   {
     // @NOTE: no need for intrinsics, gcc optimises pretty f well
@@ -208,6 +218,7 @@ namespace lvar {
     };
   }
 
+  [[nodiscard]]
   inline v3 normalise(v3 const& v)
   {
     // div by zero check so program doesn't blow up
@@ -231,6 +242,7 @@ namespace lvar {
     return res;
   }
 
+  [[nodiscard]]
   inline m4 lookAt(v3 const& pos, v3 const& target, v3 const& up)
   {
     // point from target to pos, Z needs to be positive bc in OpenGL the cam points to
@@ -255,7 +267,8 @@ namespace lvar {
 
   // @TODO: support multiple rotations
   // @TODO: use quaternions instead to avoid gimbal lock problem
-  void rotate(m4& m, float const degrees, v3i const& axis)
+  [[nodiscard]]
+  m4 rotate(m4 const& m, float const degrees, v3i const& axis)
   {
     auto const rad = radians(degrees);
     m4 r;
@@ -281,7 +294,7 @@ namespace lvar {
         0.0f,           0.0f,          0.0f, 1.0f,
       };
     }
-    m = mul(m, r);
+    return mul(m, r);
   }
 
 };
