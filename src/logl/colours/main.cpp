@@ -11,6 +11,8 @@
 #include "../../lvar_camera.cpp"
 #include "../../lvar_resource.cpp"
 
+#include <X11/Xatom.h>
+
 using namespace lvar;
 
 v3 const light_pos{ 1.2f, 1.0f, 2.0f };
@@ -148,8 +150,22 @@ int main()
   glXMakeCurrent(display, window, glContext);
   // debug!!
   bool wireframe{ false };
-  // mouse!!
+  // full screen borderless
   XEvent xev;
+  Atom wm_state{ XInternAtom(display, "_NET_WM_STATE", False) };
+  Atom wm_fullscreen{ XInternAtom(display, "_NET_WM_STATE_FULLSCREEN", False) };
+  memset(&xev, 0, sizeof(xev));
+  xev.type = ClientMessage;
+  xev.xclient.window = window;
+  xev.xclient.message_type = wm_state;
+  xev.xclient.format = 32;
+  xev.xclient.data.l[0] = 1;
+  xev.xclient.data.l[1] = wm_fullscreen;
+  xev.xclient.data.l[2] = 0;
+  XSendEvent(display, DefaultRootWindow(display), False, SubstructureRedirectMask | SubstructureNotifyMask,
+             &xev);
+  XFlush(display);
+  // mouse!!
   auto res = XGrabPointer(display, window, False, ButtonPressMask | ButtonReleaseMask | PointerMotionMask,
                           GrabModeAsync, GrabModeAsync, window, None, CurrentTime);
   if(res != GrabSuccess) {
@@ -260,6 +276,9 @@ int main()
             wireframe = false;
           }
         }
+        else if(input_manager.key_pressed(input::key::esc)) {
+          quit = true;
+        }
       } else if(xev.type == ClientMessage) {
         if(static_cast<Atom>(xev.xclient.data.l[0]) == wmDeleteMessage) {
           quit = true;
@@ -282,7 +301,6 @@ int main()
     resource_manager.set_uni_mat4(shader_cube_light->id, "view", cam.get_view());
     glBindVertexArray(shader_cube_light->vao);
     glDrawArrays(GL_TRIANGLES, 0, 36);
-
     // end render code
     XGetWindowAttributes(display, window, &gwa);
     glXSwapBuffers(display, window);
