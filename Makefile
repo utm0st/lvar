@@ -1,5 +1,5 @@
 CXX=g++
-FLAGS=-msse4.2 -Wall -std=c++20 -fno-rtti -fno-exceptions -fno-builtin -Iinc -ggdb
+FLAGS=-msse4.2 -Wall -std=c++20 -fno-rtti -fno-exceptions -fno-builtin -Iinc -O2
 
 .PHONY: tests rtests
 
@@ -23,7 +23,7 @@ clean:
 	rm ./tests/*.out
 
 cube:
-	$(CXX) $(FLAGS) src/rotating_cube/main.cpp -o src/rotating_cube/main.out -lX11 -lGL
+	$(CXX) $(FLAGS) src/rotating_cube/main.cpp -o src/rotating_cube/main -lX11 -lGL
 
-rcube:
-	./src/rotating_cube/main.out
+colours:
+	$(CXX) $(FLAGS) src/logl/colours/main.cpp -o src/logl/colours/main -lX11 -lGL

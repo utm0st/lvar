@@ -69,11 +69,11 @@ namespace lvar {
       std::copy(a.begin(), a.end(), elements);
     }
     // allow setting values thru this function bc it's useful
-    inline float& get(int const col, int const row) noexcept
+    float& get(int const col, int const row) noexcept
     {
       return elements[col * 4 + row];
     }
-    inline const float& get(int const col, int const row) const noexcept
+    const float& get(int const col, int const row) const noexcept
     {
       return elements[col * 4 + row];
     }
@@ -243,7 +243,7 @@ namespace lvar {
   }
 
   [[nodiscard]]
-  inline m4 lookAt(v3 const& pos, v3 const& target, v3 const& up)
+  inline m4 look_at(v3 const& pos, v3 const& target, v3 const& up)
   {
     // point from target to pos, Z needs to be positive bc in OpenGL the cam points to
     // towards the neg z axis
@@ -297,4 +297,13 @@ namespace lvar {
     return mul(m, r);
   }
 
+  [[nodiscard]]
+  inline v3 mul(v3 const& a, v3 const& b)
+  {
+    return v3{
+      a.x * b.x,
+      a.y * b.y,
+      a.z * b.z
+    };
+  }
 };

@@ -405,7 +405,7 @@ int main()
   }
   hidePointer(display, window);
   // run the game
-  unsigned int texture1, texture2, wallTexture, groundTexture;
+  unsigned int texture1, texture2;
   // texture 1
   // ---------
   glGenTextures(1, &texture1);
@@ -441,38 +441,6 @@ int main()
     glGenerateMipmap(GL_TEXTURE_2D);
   }
   stbi_image_free(data);
-  // wall texture
-  glGenTextures(1, &wallTexture);
-  glBindTexture(GL_TEXTURE_2D, wallTexture);
-  // set the texture wrapping parameters
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-  // set texture filtering parameters
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  // load image, create texture and generate mipmaps
-  data = stbi_load("./res/blocks1.jpg", &width, &height, &nrChannels, 0);
-  if (data){
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-    glGenerateMipmap(GL_TEXTURE_2D);
-  }
-  stbi_image_free(data);
-  // ground texture
-  glGenTextures(1, &groundTexture);
-  glBindTexture(GL_TEXTURE_2D, groundTexture);
-  // set the texture wrapping parameters
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-  // set texture filtering parameters
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  // load image, create texture and generate mipmaps
-  data = stbi_load("./res/Cobblestone.png", &width, &height, &nrChannels, 0);
-  if (data){
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-    glGenerateMipmap(GL_TEXTURE_2D);
-  }
-  stbi_image_free(data);
   m4 const projection{ perspective(45.0f, 1920.0f / 1080.0f, 0.1f, 100.f) };
   auto s = loadBackgroundShader("./res/basic.vert",
                                 "./res/basic.frag");
@@ -480,40 +448,12 @@ int main()
   setUniformInt(s.id, "image1", 0);
   setUniformInt(s.id, "image2", 1);
   setUniformMat4(s.id, "projection", projection);
-  // load wall
-  auto s2 = loadWallsShader("./res/wall.vert", "./res/wall.frag");
-  useShaderProgram(s2.id);
-  setUniformMat4(s2.id, "projection", projection);
   // 3D
   grid levelGrid;
   v3 cubePositions[] = {
     v3( 5.0f,  2.0f,  5.0f),
     v3( 8.0f,  8.0f,  8.0f),
   };
-  // wall data, you want to form a square
-  v3 const wallScales[] = {
-    v3(level_width_game_units, level_height_game_units, 1.0f), // front wall
-    v3(level_width_game_units, level_height_game_units, 1.0f), // back wall
-    v3(level_width_game_units, level_height_game_units, 1.0f), // left wall
-    v3(level_width_game_units, level_height_game_units, 1.0f), // right wall
-  };
-  v3 const wallPositions[] = {
-    v3( level_width_game_units / 2.0f, level_height_game_units / 2.0f, level_depth_game_units), // front wall
-    v3( level_width_game_units / 2.0f, level_height_game_units / 2.0f, 0.0f), // back wall
-    v3( 0.0f, level_height_game_units / 2.0f, level_width_game_units / 2.0f), // left wall
-    v3( level_width_game_units, level_height_game_units / 2.0f, level_width_game_units / 2.0f), // right wall
-  };
-  v3 const groundScale {
-    level_width_game_units, level_height_game_units, 1.0f,
-  };
-  v3 const groundPosition {
-    level_width_game_units / 2.0f, 0, level_depth_game_units / 2.0f,
-  };
-  // ground
-  m4 groundModel{ identity() };
-  scale(groundModel, groundScale);
-  rotate(groundModel, 90.0f, v3i{ 1, 0, 0 });
-  translate(groundModel, groundPosition);
   // OpenGL stuff
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -584,7 +524,6 @@ int main()
       std::sin(radians(yaw)) * std::cos(radians(pitch))
     };
     cameraFront = normalise(cameraDirection);
-    auto prevCameraPosition = cameraPosition;
     // polling for x11 window events, keyboard
     while(XPending(display)) {
       XNextEvent(display, &xev);
@@ -625,13 +564,9 @@ int main()
         }
       }
     }
-    // @NOTE: modify this is you clip thru game level's walls
-    if(cameraPosition.x > level_width_game_units || cameraPosition.y > level_height_game_units || cameraPosition.z > level_depth_game_units || cameraPosition.x < 0.0f || cameraPosition.y < 0.0f || cameraPosition.z < 0.0f) {
-      cameraPosition = prevCameraPosition;
-    }
     levelGrid.update(cameraPosition);
     // view matrix (camera)
-    m4 const view{ lookAt(cameraPosition, add(cameraPosition, cameraFront), cameraUp) };
+    m4 const view{ look_at(cameraPosition, add(cameraPosition, cameraFront), cameraUp) };
     // -------------------------------------------------------------------------------------------------------
     // start render code
     glClearColor(0.3f, 0.2f, 0.1f, 1.0f);
@@ -647,31 +582,11 @@ int main()
     for(int i{ 0 }; i < 2; ++i) {
       m4 model = identity();
       const float rotation = 20.0f * i;
-      rotate(model, rotation, v3i{0, 0, 1});
+      model = rotate(model, rotation, v3i{0, 0, 1});
       translate(model, cubePositions[i]);
       setUniformMat4(s.id, "model", model);
       glDrawArrays(GL_TRIANGLES, 0, 36);
     }
-    // wall
-    useShaderProgram(s2.id);
-    setUniformMat4(s2.id, "view", view);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, wallTexture);
-    glBindVertexArray(s2.VAO);
-    for(int i{ 0 }; i < 4; ++i) {
-      m4 model{ identity() };
-      scale(model, wallScales[i]);
-      if(i > 1) {
-        rotate(model, 90.0f, v3i{0, 1, 0});
-      }
-      translate(model, wallPositions[i]);
-      setUniformMat4(s2.id, "model", model);
-      glDrawArrays(GL_TRIANGLES, 0, 18);
-    }
-    // ground
-    glBindTexture(GL_TEXTURE_2D, groundTexture);
-    setUniformMat4(s2.id, "model", groundModel);
-    glDrawArrays(GL_TRIANGLES, 0, 18);
     // -------------------------------------------------------------------------------------------------------
     // end render code
     XGetWindowAttributes(display, window, &gwa);
