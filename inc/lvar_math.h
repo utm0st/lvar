@@ -306,4 +306,18 @@ namespace lvar {
       a.z * b.z
     };
   }
+
+  [[nodiscard]]
+  inline float approach(float const start, float const end, float const t)
+  {
+    float const diff{ end - start };
+    if(diff > t) {
+      return start + t;
+    }
+    if(diff < -t) {
+      return start - t;
+    }
+    return (end < 0.0f) ? -end : end;
+  }
+
 };

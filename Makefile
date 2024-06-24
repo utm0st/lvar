@@ -27,3 +27,6 @@ cube:
 
 colours:
 	$(CXX) $(FLAGS) src/logl/colours/main.cpp -o src/logl/colours/main -lX11 -lGL
+
+rcolours:
+	./src/logl/colours/main

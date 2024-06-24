@@ -37,6 +37,10 @@ namespace lvar {
       {
         return prevkeys[static_cast<unsigned int>(k)] && currkeys[static_cast<unsigned int>(k)];
       }
+      bool key_release(key const k) const noexcept
+      {
+        return prevkeys[static_cast<unsigned int>(k)] && !currkeys[static_cast<unsigned int>(k)];
+      }
       // store in prevkeys the contents of currkeys and update currkeys with recent user's input.
       // needed to determine if a key is being pressed or held. if you didn't do that, a single
       // key press would be very hard to get right because it "extends" through multiple frames.

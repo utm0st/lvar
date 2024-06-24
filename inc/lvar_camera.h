@@ -21,11 +21,12 @@ namespace lvar {
     v3 front;
     v3 pos;
     v3 dir;
+    v3 curr_vel;
+    v3 goal_vel;
     input::manager& input_manager;
     float yaw; // looking right or left?
     float pitch; // looking up or down?
     float const speed;
-    float currspeed;
   };
 
 };
