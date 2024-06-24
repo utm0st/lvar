@@ -10,47 +10,47 @@
 // @TEMP: this is temporary, objects will be .obj files most of the time, but for simple demos you'll use
 // cubes, so put them in here.
 static float cube_vertices[] = {
-  -0.5f, -0.5f, -0.5f,
-  0.5f, -0.5f, -0.5f,
-  0.5f,  0.5f, -0.5f,
-  0.5f,  0.5f, -0.5f,
-  -0.5f,  0.5f, -0.5f,
-  -0.5f, -0.5f, -0.5f,
+  -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+  0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+  0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+  0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+  -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+  -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
 
-  -0.5f, -0.5f,  0.5f,
-  0.5f, -0.5f,  0.5f,
-  0.5f,  0.5f,  0.5f,
-  0.5f,  0.5f,  0.5f,
-  -0.5f,  0.5f,  0.5f,
-  -0.5f, -0.5f,  0.5f,
+  -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+  0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+  0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+  0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+  -0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+  -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
 
-  -0.5f,  0.5f,  0.5f,
-  -0.5f,  0.5f, -0.5f,
-  -0.5f, -0.5f, -0.5f,
-  -0.5f, -0.5f, -0.5f,
-  -0.5f, -0.5f,  0.5f,
-  -0.5f,  0.5f,  0.5f,
+  -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+  -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+  -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+  -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+  -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+  -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
 
-  0.5f,  0.5f,  0.5f,
-  0.5f,  0.5f, -0.5f,
-  0.5f, -0.5f, -0.5f,
-  0.5f, -0.5f, -0.5f,
-  0.5f, -0.5f,  0.5f,
-  0.5f,  0.5f,  0.5f,
+  0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+  0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+  0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+  0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+  0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+  0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
 
-  -0.5f, -0.5f, -0.5f,
-  0.5f, -0.5f, -0.5f,
-  0.5f, -0.5f,  0.5f,
-  0.5f, -0.5f,  0.5f,
-  -0.5f, -0.5f,  0.5f,
-  -0.5f, -0.5f, -0.5f,
+  -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+  0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+  0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+  0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+  -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+  -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
 
-  -0.5f,  0.5f, -0.5f,
-  0.5f,  0.5f, -0.5f,
-  0.5f,  0.5f,  0.5f,
-  0.5f,  0.5f,  0.5f,
-  -0.5f,  0.5f,  0.5f,
-  -0.5f,  0.5f, -0.5f,
+  -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+  0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+  0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+  0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+  -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+  -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
 };
 
 namespace lvar {
@@ -65,9 +65,9 @@ namespace lvar {
                                                SHADER_FRAG_LIGHTING_COLOURS,
                                                cube_vertices,
                                                sizeof(cube_vertices),
-                                               1,
+                                               2,
                                                3,
-                                               sizeof(float) * 3));
+                                               sizeof(float) * 6));
       if(err) {
         return;
       }
@@ -78,7 +78,7 @@ namespace lvar {
                                                sizeof(cube_vertices),
                                                1,
                                                3,
-                                               sizeof(float) * 3));
+                                               sizeof(float) * 6));
     }
 
     manager::~manager() noexcept
@@ -200,7 +200,7 @@ namespace lvar {
       glBindBufferBase(GL_UNIFORM_BUFFER, unused_bind_point, ubo);
       glBindVertexArray(vao);
       for(unsigned int i{ 0 }; i < num_attrs; ++i) {
-        glVertexAttribPointer(i, elem_per_attr, GL_FLOAT, GL_FALSE, stride_sz, reinterpret_cast<void*>(i * stride_sz));
+        glVertexAttribPointer(i, elem_per_attr, GL_FLOAT, GL_FALSE, stride_sz, reinterpret_cast<void*>(i * sizeof(float) * elem_per_attr)); // this is wrong lol
         glEnableVertexAttribArray(i);
       }
       return shader{ id, vao, vbo, 0, ubo };

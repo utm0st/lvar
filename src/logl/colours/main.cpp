@@ -213,19 +213,18 @@ int main()
   // define cube colour
   v3 const colour_coral{ 1.0f, 0.5f, 0.31f };
   v3 const colour_light{ 1.0f, 1.0f, 1.0f };
-  v3 const colour_reflected{ mul(colour_coral, colour_light) };
   m4 const projection{ perspective(45.0f, window_width / window_height, 0.1f, 100.f) };
   // uniform data for shaders
   resource::uni_buff_obj ubo_data{ .proj = projection, .view = identity() };
   m4 light_model{ identity( )};
   translate(light_model, light_pos);
   resource_manager.use_shader(shader_cube_light->id);
-  // resource_manager.set_uni_mat4(shader_cube_light->id, "projection", projection);
   resource_manager.set_uni_mat4(shader_cube_light->id, "model", light_model);
   resource_manager.use_shader(shader_cube_object->id);
-  // resource_manager.set_uni_mat4(shader_cube_object->id, "projection", projection);
   resource_manager.set_uni_mat4(shader_cube_object->id, "model", identity());
-  resource_manager.set_uni_vec3(shader_cube_object->id, "colour_reflected", colour_reflected);
+  resource_manager.set_uni_vec3(shader_cube_object->id, "colour_object", colour_coral);
+  resource_manager.set_uni_vec3(shader_cube_object->id, "colour_light", colour_light);
+  resource_manager.set_uni_vec3(shader_cube_object->id, "light_pos", light_pos);
   float lastframe{ 0.0f };
   bool quit{ false };
   while(!quit) {
@@ -298,11 +297,9 @@ int main()
     // start render code
     // -------------------------------------------------------------------------------------------------------
     resource_manager.use_shader(shader_cube_object->id);
-    //resource_manager.set_uni_mat4(shader_cube_object->id, "view", cam.get_view());
     glBindVertexArray(shader_cube_object->vao);
     glDrawArrays(GL_TRIANGLES, 0, 36);
     resource_manager.use_shader(shader_cube_light->id);
-    //resource_manager.set_uni_mat4(shader_cube_light->id, "view", cam.get_view());
     glBindVertexArray(shader_cube_light->vao);
     glDrawArrays(GL_TRIANGLES, 0, 36);
     // end render code
