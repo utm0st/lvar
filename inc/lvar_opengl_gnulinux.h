@@ -40,6 +40,9 @@ extern PFNGLDELETEPROGRAMPROC glDeleteProgram;
 extern PFNGLUNIFORM1FPROC glUniform1f;
 extern PFNGLUNIFORM3FPROC glUniform3f;
 extern PFNGLUNIFORM4FPROC glUniform4f;
+extern PFNGLGETUNIFORMBLOCKINDEXPROC glGetUniformBlockIndex;
+extern PFNGLUNIFORMBLOCKBINDINGPROC glUniformBlockBinding;
+extern PFNGLBINDBUFFERBASEPROC glBindBufferBase;
 extern PFNGLPOLYGONMODEPROC myGlPolygonMode;
 
 #define glPolygonMode myGlPolygonMode
@@ -87,6 +90,9 @@ PFNGLDELETEPROGRAMPROC glDeleteProgram;
 PFNGLUNIFORM1FPROC glUniform1f;
 PFNGLUNIFORM3FPROC glUniform3f;
 PFNGLUNIFORM4FPROC glUniform4f;
+PFNGLGETUNIFORMBLOCKINDEXPROC glGetUniformBlockIndex;
+PFNGLUNIFORMBLOCKBINDINGPROC glUniformBlockBinding;
+PFNGLBINDBUFFERBASEPROC glBindBufferBase;
 PFNGLPOLYGONMODEPROC myGlPolygonMode;
 
 void init_opengl_ptrs()
@@ -124,5 +130,8 @@ void init_opengl_ptrs()
   glUniform1f = (PFNGLUNIFORM1FPROC)getGLProcAddress("glUniform1f");
   glUniform3f = (PFNGLUNIFORM3FPROC)getGLProcAddress("glUniform3f");
   glUniform4f = (PFNGLUNIFORM4FPROC)getGLProcAddress("glUniform4f");
+  glGetUniformBlockIndex = (PFNGLGETUNIFORMBLOCKINDEXPROC)getGLProcAddress("glGetUniformBlockIndex");
+  glUniformBlockBinding = (PFNGLUNIFORMBLOCKBINDINGPROC)getGLProcAddress("glUniformBlockBinding");
+  glBindBufferBase = (PFNGLBINDBUFFERBASEPROC)getGLProcAddress("glBindBufferBase");
   myGlPolygonMode = (PFNGLPOLYGONMODEPROC)getGLProcAddress("glPolygonMode");
 }

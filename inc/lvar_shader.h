@@ -18,11 +18,13 @@ namespace lvar {
       shader(unsigned int const i,
              unsigned int const va,
              unsigned int const vb,
-             unsigned int const e)
+             unsigned int const e,
+             unsigned int const u)
         : id{ i },
           vao{ va },
           vbo{ vb },
-          ebo{ e }
+          ebo{ e },
+          ubo{ u }
       {
       }
       ~shader() = default;
@@ -31,6 +33,7 @@ namespace lvar {
       unsigned int vao;
       unsigned int vbo;
       unsigned int ebo;
+      unsigned int ubo;
     };
   };
 };

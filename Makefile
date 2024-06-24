@@ -30,3 +30,9 @@ colours:
 
 rcolours:
 	./src/logl/colours/main
+
+pcolours:
+	perf record -e cpu-cycles,cache-misses,branch-misses ./src/logl/colours/main
+
+prcolours:
+	perf report

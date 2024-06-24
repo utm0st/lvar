@@ -22,6 +22,12 @@ namespace lvar {
       }
     };
 
+    class alignas(16) uni_buff_obj final {
+    public:
+      m4 proj;
+      m4 view;
+    };
+
     // this class is expected to be omoi
     class manager final {
     public:
@@ -31,7 +37,7 @@ namespace lvar {
     public:
       auto error() const noexcept { return err; }
       auto get_shader(char const* sid) const noexcept { return shaders.at(fnv1a(sid)).get(); }
-      unsigned int getUniformLocation(unsigned int const id, char const* uniname)
+      unsigned int get_uni_location(unsigned int const id, char const* uniname) noexcept
       {
         const auto key = std::make_pair(id, uniname);
         const auto it  = uniforms.find(key);
@@ -46,13 +52,21 @@ namespace lvar {
       {
         glUseProgram(id);
       }
-      auto set_uni_mat4(unsigned int const id, char const* uniname, m4 const& m)
+      auto set_uni_mat4(unsigned int const id, char const* uniname, m4 const& m) noexcept
       {
-        glUniformMatrix4fv(getUniformLocation(id, uniname), 1, false, &m.get(0, 0));
+        glUniformMatrix4fv(get_uni_location(id, uniname), 1, false, &m.get(0, 0));
       }
-      auto set_uni_vec3(unsigned int const id, char const* uniname, v3 const& value)
+      auto set_uni_vec3(unsigned int const id, char const* uniname, v3 const& value) noexcept
       {
-        glUniform3f(getUniformLocation(id, uniname), value.x, value.y, value.z);
+        glUniform3f(get_uni_location(id, uniname), value.x, value.y, value.z);
+      }
+      void update_ubo(uni_buff_obj const& data) noexcept
+      {
+        for(auto& s : shaders) {
+          use_shader(s.second->id);
+          glBindBuffer(GL_UNIFORM_BUFFER, s.second->ubo);
+          glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(uni_buff_obj), &data);
+        }
       }
     private:
       bool shader_compilation_has_errors(unsigned int const program, shader_type const type) const noexcept;

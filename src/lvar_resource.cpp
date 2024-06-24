@@ -184,21 +184,26 @@ namespace lvar {
     {
       unsigned int id{ compile_link_shaders(path_vertex_sh, path_frag_sh) };
       if(id == 0) {
-        return shader{ 0, 0, 0, 0 };
+        return shader{ 0, 0, 0, 0, 0 };
       }
-      // @TODO: parametrise ebo!
-      unsigned int vao, vbo;
+      unsigned int vao, vbo, ubo;
       glGenVertexArrays(1, &vao);
       glGenBuffers(1, &vbo);
+      glGenBuffers(1, &ubo);
       glBindBuffer(GL_ARRAY_BUFFER, vbo);
-      // @TODO: if you're doing batch render, this is diff, parametrise!
-      glBufferData(GL_ARRAY_BUFFER, vertex_sz, vertex_data, GL_STATIC_DRAW); // parametrise draw type!
+      glBufferData(GL_ARRAY_BUFFER, vertex_sz, vertex_data, GL_STATIC_DRAW); // @TODO: parametrise draw type!
+      glBindBuffer(GL_UNIFORM_BUFFER, ubo);
+      glBufferData(GL_UNIFORM_BUFFER, sizeof(uni_buff_obj), nullptr, GL_STATIC_DRAW);
+      auto const uni_block_idx = glGetUniformBlockIndex(id, "matrices");
+      unsigned int const unused_bind_point{ 1 };
+      glUniformBlockBinding(id, uni_block_idx, unused_bind_point);
+      glBindBufferBase(GL_UNIFORM_BUFFER, unused_bind_point, ubo);
       glBindVertexArray(vao);
       for(unsigned int i{ 0 }; i < num_attrs; ++i) {
         glVertexAttribPointer(i, elem_per_attr, GL_FLOAT, GL_FALSE, stride_sz, reinterpret_cast<void*>(i * stride_sz));
         glEnableVertexAttribArray(i);
       }
-      return shader{ id, vao, vbo, 0 };
+      return shader{ id, vao, vbo, 0, ubo };
     }
   };
 };
