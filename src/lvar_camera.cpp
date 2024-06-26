@@ -13,7 +13,7 @@ namespace lvar {
       input_manager{ im },
       yaw{ -90.0f },
       pitch{ 0.0f },
-      speed{ 2.0f }
+      speed{ 0.5f }
   {
   }
 

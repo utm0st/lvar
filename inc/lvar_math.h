@@ -320,4 +320,75 @@ namespace lvar {
     return (end < 0.0f) ? -end : end;
   }
 
+  [[nodiscard]]
+  m4 inverse_transform_noscale(m4 const& m)
+  {
+    m4 inv;
+    // transpose the 3x3 rotation part
+    for(unsigned int i{ 0 }; i < 3; ++i) {
+      for(unsigned int j{ 0 }; j < 3; ++j) {
+        inv.get(i, j) = m.get(j, i);
+      }
+    }
+    // adjust the translation part -> -M^-1 · T, remember that in this case M^-1 = M^T
+    for(unsigned int i{ 0 }; i < 3; ++i) {
+      inv.get(3, i) = 0.0f;
+      for(unsigned int j{ 0 }; j < 3; ++j) {
+        inv.get(3, i) -= inv.get(i, j) * m.get(3, j);
+      }
+    }
+    inv.get(0, 3) = 0.0f;
+    inv.get(1, 3) = 0.0f;
+    inv.get(2, 3) = 0.0f;
+    inv.get(3, 3) = 1.0f;
+    return inv;
+  }
+
+  [[nodiscard]]
+  m4 inverse_transform(m4 const& m)
+  {
+    // this one is a little different from the previous one bc when scaling
+    // is present in M. In this case, the upper-left 3x3 matrix is not purely
+    // rotational, so to isolate the rotation part, you need to normalise the
+    // first 3 columns.
+    m4 inv{ identity() };
+    for(unsigned int i{ 0 }; i < 3; ++i) {
+      for(unsigned int j{ 0 }; j < 3; ++j) {
+        inv.get(i, j) = m.get(j, i);
+      }
+    }
+    v3 const x{ inv.get(0, 0), inv.get(0, 1), inv.get(0, 2) };
+    v3 const y{ inv.get(1, 0), inv.get(1, 1), inv.get(1, 2) };
+    v3 const z{ inv.get(2, 0), inv.get(2, 1), inv.get(2, 2) };
+    v3 const x_norm{ normalise(x) };
+    v3 const y_norm{ normalise(y) };
+    v3 const z_norm{ normalise(z) };
+    // replace normalised
+    inv.get(0, 0) = x_norm.x; inv.get(0, 1) = x_norm.y; inv.get(0, 2) = x_norm.z;
+    inv.get(1, 0) = y_norm.x; inv.get(1, 1) = y_norm.y; inv.get(1, 2) = y_norm.z;
+    inv.get(2, 0) = z_norm.x; inv.get(2, 1) = z_norm.y; inv.get(2, 2) = z_norm.z;
+    // adjust translation part
+    for(unsigned int i{ 0 }; i < 3; ++i) {
+      inv.get(3, i) = 0.0f;
+      for(unsigned int j{ 0 }; j < 3; ++j) {
+        inv.get(3, i) -= inv.get(i, j) * m.get(3, j);
+      }
+    }
+    inv.get(0, 3) = 0.0f;
+    inv.get(1, 3) = 0.0f;
+    inv.get(2, 3) = 0.0f;
+    inv.get(3, 3) = 1.0f;
+    return inv;
+  }
+
+  inline m4 transpose(m4 const& m)
+  {
+    m4 trans;
+    for(unsigned int i{ 0 }; i < 4; ++i) {
+      for(unsigned int j{ 0 }; j < 4; ++j) {
+        trans.get(i, j) = m.get(j, i);
+      }
+    }
+    return trans;
+  }
 };

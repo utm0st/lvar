@@ -218,6 +218,7 @@ int main()
   resource::uni_buff_obj ubo_data{ .proj = projection, .view = identity() };
   m4 light_model{ identity( )};
   translate(light_model, light_pos);
+  m4 light_model_trans{ transpose(inverse_transform_noscale(light_model)) };
   resource_manager.use_shader(shader_cube_light->id);
   resource_manager.set_uni_mat4(shader_cube_light->id, "model", light_model);
   resource_manager.use_shader(shader_cube_object->id);
@@ -225,6 +226,7 @@ int main()
   resource_manager.set_uni_vec3(shader_cube_object->id, "colour_object", colour_coral);
   resource_manager.set_uni_vec3(shader_cube_object->id, "colour_light", colour_light);
   resource_manager.set_uni_vec3(shader_cube_object->id, "light_pos", light_pos);
+  resource_manager.set_uni_mat4(shader_cube_object->id, "model_trans", light_model_trans);
   float lastframe{ 0.0f };
   bool quit{ false };
   while(!quit) {

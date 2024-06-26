@@ -1,5 +1,5 @@
 CXX=g++
-FLAGS=-msse4.2 -Wall -std=c++20 -fno-rtti -fno-exceptions -fno-builtin -Iinc -O2
+FLAGS=-msse4.2 -Wall -std=c++20 -fno-rtti -fno-exceptions -fno-builtin -Iinc -ggdb
 
 .PHONY: tests rtests
 

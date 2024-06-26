@@ -12,10 +12,11 @@ layout(std140) uniform matrices {
 };
 
 uniform mat4 model;
+uniform mat4 model_trans;
 
 void main()
 {
   gl_Position = projection * view * model * vec4(pos, 1.0);
-  normal = mat3(transpose(inverse(model))) * norm;
+  normal = mat3(model_trans) * norm;
   frag_world_pos = vec3(model * vec4(pos, 1.0));
 }
